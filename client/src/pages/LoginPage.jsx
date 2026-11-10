@@ -3,6 +3,7 @@ import { Mail, Lock, ShieldCheck, ArrowRight, AlertTriangle } from 'lucide-react
 import { useNavigate, Link } from 'react-router-dom';
 import Footer from '../components/Footer';
 import { useLanguage } from '../context/LanguageContext';
+import { API_BASE_URL } from '../config';
 
 export default function LoginPage() {
   const { lang, t } = useLanguage();
@@ -22,7 +23,7 @@ export default function LoginPage() {
     setErrorMsg('');
 
     try {
-      const response = await fetch('http://localhost:5000/api/login', {
+      const response = await fetch(`${API_BASE_URL}/api/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)

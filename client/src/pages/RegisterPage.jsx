@@ -3,6 +3,7 @@ import { User, Mail, Lock, MapPin, Phone, Briefcase, ShieldCheck, ArrowRight } f
 import { useNavigate, Link } from 'react-router-dom';
 import Footer from '../components/Footer';
 import { useLanguage } from '../context/LanguageContext';
+import { API_BASE_URL } from '../config';
 
 export default function RegisterPage() {
   const { lang, t } = useLanguage();
@@ -26,7 +27,7 @@ export default function RegisterPage() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/register', {
+      const response = await fetch(`${API_BASE_URL}/api/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...formData, role: 'professional' })
@@ -46,7 +47,7 @@ export default function RegisterPage() {
       }
     } catch (error) {
       console.error('Error connecting to backend:', error);
-      alert(lang === 'fr' ? 'Impossible de se connecter au serveur backend. Assurez-vous que node server.js est en cours d’exécution.' : 'Unable to connect to the backend server. Make sure node server.js is running.');
+      alert(lang === 'fr' ? 'Impossible de se connecter au serveur backend.' : 'Unable to connect to the backend server.');
     } finally {
       setIsSubmitting(false);
     }
@@ -160,87 +161,12 @@ export default function RegisterPage() {
                 onChange={handleChange}
                 className="w-full bg-[#0A0D14] border border-slate-700/80 rounded-2xl px-4 py-3 pl-10 text-xs text-white focus:outline-none focus:border-emerald-400"
               >
-                <option value="Software & Digital Development">
-                  {lang === 'fr' ? 'Développement Logiciel & Numérique (Web, Mobile)' : 'Software & Digital Development (Web, Mobile, Apps)'}
-                </option>
-                <option value="IT Support & Network Engineering">
-                  {lang === 'fr' ? 'Support Informatique, Réseaux & Réparation' : 'IT Support, Networking & Hardware Repairs'}
-                </option>
-                <option value="Cybersecurity & Database Administration">
-                  {lang === 'fr' ? 'Cybersécurité & Administration de Bases de Données' : 'Cybersecurity & Database Administration'}
-                </option>
-                <option value="Graphics & Brand Design">
-                  {lang === 'fr' ? 'Graphisme, Design de Marque & Packaging' : 'Graphics, Brand Design & Packaging'}
-                </option>
-                <option value="Video Editing, Photography & Cinematography">
-                  {lang === 'fr' ? 'Montage Vidéo, Photographie & Cinématographie' : 'Video Editing, Photography & Cinematography'}
-                </option>
-                <option value="Animation & Motion Graphics">
-                  {lang === 'fr' ? 'Animation & Motion Design' : 'Animation & Motion Graphics'}
-                </option>
-                <option value="Technical & Engineering Services">
-                  {lang === 'fr' ? 'Services Techniques & Ingénierie' : 'Technical & Engineering Services'}
-                </option>
-                <option value="Civil Engineering & Architecture">
-                  {lang === 'fr' ? 'Génie Civil, Architecture & Topographie' : 'Civil Engineering, Architecture & Surveying'}
-                </option>
-                <option value="Electrical & Solar Installation">
-                  {lang === 'fr' ? 'Installation Électrique & Énergie Solaire' : 'Electrical Wiring & Solar Energy Installation'}
-                </option>
-                <option value="Plumbing & Sanitary Works">
-                  {lang === 'fr' ? 'Plomberie & Travaux Sanitaires' : 'Plumbing & Sanitary Works'}
-                </option>
-                <option value="Masonry, Tiling & Construction">
-                  {lang === 'fr' ? 'Maçonnerie, Carrelage & Construction Générale' : 'Masonry, Tiling & General Construction'}
-                </option>
-                <option value="Carpentry & Woodwork">
-                  {lang === 'fr' ? 'Menuiserie & Ébénisterie' : 'Carpentry, Joinery & Furniture Making'}
-                </option>
-                <option value="Welding & Metal Fabrication">
-                  {lang === 'fr' ? 'Soudure & Métallerie (Aluminium & Fer)' : 'Welding & Metal Fabrication (Aluminium & Iron)'}
-                </option>
-                <option value="Painting & Interior Decoration">
-                  {lang === 'fr' ? 'Peinture & Décoration Intérieure' : 'Painting & Interior Decoration'}
-                </option>
-                <option value="Business Consulting & Financial Accounting">
-                  {lang === 'fr' ? 'Conseil en Entreprise & Comptabilité Financière' : 'Business Consulting & Financial Accounting'}
-                </option>
-                <option value="Legal Services & Tax Advisory">
-                  {lang === 'fr' ? 'Services Juridiques & Conseil Fiscal' : 'Legal Services & Tax Advisory'}
-                </option>
-                <option value="Copywriting, Translation & Content Writing">
-                  {lang === 'fr' ? 'Rédaction, Traduction (EN/FR) & Recherche Académique' : 'Copywriting, Translation (EN/FR) & Academic Research'}
-                </option>
-                <option value="Digital Marketing & Social Media Management">
-                  {lang === 'fr' ? 'Marketing Numérique & Gestion des Réseaux Sociaux' : 'Digital Marketing & Social Media Management'}
-                </option>
-                <option value="Academic Tutoring & E-Learning">
-                  {lang === 'fr' ? 'Soutien Scolaire (Maths, Sciences, Informatique)' : 'Academic Tutoring (Math, Sciences, Computer Science)'}
-                </option>
-                <option value="Professional Training & Skill Acquisition">
-                  {lang === 'fr' ? 'Formation Professionnelle & Coaching' : 'Professional Training & Coaching'}
-                </option>
-                <option value="Event MC, Hosting & DJ Services">
-                  {lang === 'fr' ? 'Maître de Cérémonie (MC), Animation & DJ' : 'Event MC, Hosting & DJ Services'}
-                </option>
-                <option value="Event Planning, Decoration & Catering">
-                  {lang === 'fr' ? 'Organisation d’Événements, Décoration & Traiteur' : 'Event Planning, Decoration & Catering Services'}
-                </option>
-                <option value="Home & Office Cleaning Services">
-                  {lang === 'fr' ? 'Services de Nettoyage Maison & Bureau' : 'Home & Office Cleaning Services'}
-                </option>
-                <option value="Logistics, Courier & Haulage Services">
-                  {lang === 'fr' ? 'Logistique, Course & Services de Transport' : 'Logistics, Courier & Haulage Services'}
-                </option>
-                <option value="Fashion Design & Tailoring">
-                  {lang === 'fr' ? 'Stylisme, Modélisme & Couture' : 'Fashion Design, Tailoring & Styling'}
-                </option>
-                <option value="Beauty, Makeup & Cosmetology">
-                  {lang === 'fr' ? 'Beauté, Maquillage & Coiffure' : 'Beauty, Makeup Artistry & Hair Styling'}
-                </option>
-                <option value="Fitness Training & Wellness">
-                  {lang === 'fr' ? 'Entraînement Physique & Coaching Bien-être' : 'Fitness Training & Wellness Coaching'}
-                </option>
+                <option value="Software & Digital Development">Software & Digital Development (Web, Mobile, Apps)</option>
+                <option value="IT Support & Network Engineering">IT Support, Networking & Hardware Repairs</option>
+                <option value="Cybersecurity & Database Administration">Cybersecurity & Database Administration</option>
+                <option value="Graphics & Brand Design">Graphics, Brand Design & Packaging</option>
+                <option value="Video Editing, Photography & Cinematography">Video Editing, Photography & Cinematography</option>
+                <option value="Technical & Engineering Services">Technical & Engineering Services</option>
               </select>
             </div>
           </div>
