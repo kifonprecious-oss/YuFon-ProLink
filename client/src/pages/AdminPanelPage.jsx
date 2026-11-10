@@ -7,6 +7,11 @@ import {
 import { useLanguage } from '../context/LanguageContext';
 import Footer from '../components/Footer';
 
+// Automatically points to local server during development, or your live backend in production
+const API_BASE_URL = window.location.hostname === 'localhost' 
+  ? 'http://localhost:5000' 
+  : 'https://yufon-prolink-backend.onrender.com'; // Replace with your actual live Render backend URL if different
+
 export default function AdminPanelPage() {
   const { lang } = useLanguage();
   const [users, setUsers] = useState([]);
@@ -17,7 +22,7 @@ export default function AdminPanelPage() {
 
   const fetchUsers = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/admin/users');
+      const res = await fetch(`${API_BASE_URL}/api/admin/users`);
       const data = await res.json();
       if (Array.isArray(data)) {
         setUsers(data);
@@ -35,7 +40,7 @@ export default function AdminPanelPage() {
 
   const handleUpdateStatus = async (userId, approveStatus) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/admin/users/${userId}/status`, {
+      const res = await fetch(`${API_BASE_URL}/api/admin/users/${userId}/status`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ isApproved: approveStatus, verified: approveStatus })
@@ -259,7 +264,7 @@ export default function AdminPanelPage() {
                               </td>
                               <td className="p-4 text-slate-300">
                                 {user.idDocument ? (
-                                  <a href={`http://localhost:5000${user.idDocument}`} target="_blank" rel="noreferrer" className="text-amber-400 underline text-[11px] font-semibold">
+                                  <a href={`${API_BASE_URL}${user.idDocument}`} target="_blank" rel="noreferrer" className="text-amber-400 underline text-[11px] font-semibold">
                                     View Uploaded ID
                                   </a>
                                 ) : (

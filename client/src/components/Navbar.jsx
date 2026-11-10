@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { 
   Users, Menu, X, Globe, LayoutDashboard, Search, Briefcase, 
-  FolderKanban, MessageSquare, Bell, User, ArrowLeftRight 
+  FolderKanban, MessageSquare, Bell, User, ArrowLeftRight, Shield 
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -31,6 +31,9 @@ export default function Navbar() {
 
   const isActive = (path) => location.pathname === path;
 
+  // Check if current logged-in user has admin privileges
+  const isAdmin = currentUser?.role === 'admin' || currentUser?.isAdmin === true;
+
   // Navbar Dictionary for English and French translations
   const navText = {
     en: {
@@ -42,6 +45,7 @@ export default function Navbar() {
       messages: 'Messages',
       notifications: 'Notification',
       profile: 'Profile',
+      admin: 'Admin',
       clientView: 'Client View',
       proView: 'Professional View',
       login: 'Login',
@@ -56,6 +60,7 @@ export default function Navbar() {
       messages: 'Messages',
       notifications: 'Notifications',
       profile: 'Profil',
+      admin: 'Admin',
       clientView: 'Vue Client',
       proView: 'Vue Professionnel',
       login: 'Connexion',
@@ -110,6 +115,19 @@ export default function Navbar() {
         <Link to="/profile" className={getLinkStyle('/profile')}>
           <User className="h-3.5 w-3.5 text-teal-400" /> {t.profile}
         </Link>
+
+        {isAdmin && (
+          <Link 
+            to="/admin" 
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all duration-200 ${
+              isActive('/admin')
+                ? 'bg-amber-500/20 border border-amber-500/50 text-amber-300 shadow-inner'
+                : 'text-amber-400 hover:bg-amber-500/10 border border-amber-500/30'
+            }`}
+          >
+            <Shield className="h-3.5 w-3.5 text-amber-400" /> {t.admin}
+          </Link>
+        )}
       </div>
     );
   };
@@ -227,6 +245,15 @@ export default function Navbar() {
               <Link to="/messages" onClick={() => setIsOpen(false)} className="py-2 px-3 bg-[#111622] rounded-lg">{t.messages}</Link>
               <Link to="/notifications" onClick={() => setIsOpen(false)} className="py-2 px-3 bg-[#111622] rounded-lg">{t.notifications}</Link>
               <Link to="/profile" onClick={() => setIsOpen(false)} className="py-2 px-3 bg-[#111622] rounded-lg">{t.profile}</Link>
+              {isAdmin && (
+                <Link 
+                  to="/admin" 
+                  onClick={() => setIsOpen(false)} 
+                  className="py-2 px-3 bg-amber-500/20 border border-amber-500/40 text-amber-300 rounded-lg flex items-center gap-2 font-bold"
+                >
+                  <Shield className="h-4 w-4 text-amber-400" /> {t.admin}
+                </Link>
+              )}
             </div>
           )}
         </div>
