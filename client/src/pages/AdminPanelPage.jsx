@@ -6,11 +6,7 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import Footer from '../components/Footer';
-
-// Automatically points to local server during development, or your live backend in production
-const API_BASE_URL = window.location.hostname === 'localhost' 
-  ? 'http://localhost:5000' 
-  : 'https://yufon-prolink-backend.onrender.com'; // Replace with your actual live Render backend URL if different
+import { API_BASE_URL } from '../config';
 
 export default function AdminPanelPage() {
   const { lang } = useLanguage();
