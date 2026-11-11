@@ -29,14 +29,16 @@ export default function RegisterPage() {
     try {
       const response = await fetch(`${API_BASE_URL}/api/register`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         body: JSON.stringify({ ...formData, role: 'professional' })
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        // Automatically store user session and route to profile setup
         if (data.user) {
           localStorage.setItem('currentUser', JSON.stringify(data.user));
         }
@@ -47,7 +49,9 @@ export default function RegisterPage() {
       }
     } catch (error) {
       console.error('Error connecting to backend:', error);
-      alert(lang === 'fr' ? 'Impossible de se connecter au serveur backend.' : 'Unable to connect to the backend server.');
+      alert(lang === 'fr' 
+        ? `Erreur de connexion (${error.message || 'Serveur indisponible'}). Veuillez réessayer.` 
+        : `Connection error (${error.message || 'Server unreachable'}). Please check your network or try again.`);
     } finally {
       setIsSubmitting(false);
     }
