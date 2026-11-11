@@ -19,6 +19,15 @@ const io = new Server(server, {
 app.use(express.json());
 app.use(cors());
 
+// Root Health-Check Route (Fixes UptimeRobot 404 error and keeps Render awake)
+app.get('/', (req, res) => {
+  res.status(200).json({ 
+    status: 'online', 
+    service: 'YuFon-ProLink Backend API',
+    timestamp: new Date().toISOString() 
+  });
+});
+
 // Serve uploaded files statically so they can be accessed via URL (e.g., http://localhost:5000/uploads/filename.jpg)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
