@@ -7,6 +7,7 @@ import {
 import Footer from '../components/Footer';
 import { useLanguage } from '../context/LanguageContext';
 import { Link } from 'react-router-dom';
+import { API_BASE_URL } from '../config';
 
 export default function DashboardPage() {
   const { lang } = useLanguage();
@@ -25,13 +26,13 @@ export default function DashboardPage() {
     }
     const currentUserId = storedUser?._id || storedUser?.id || '';
 
-    // Fetch requests, proposals, contracts, and reviews concurrently
+    // Fetch requests, proposals, contracts, and reviews concurrently using API_BASE_URL
     Promise.all([
-      fetch('http://localhost:5000/api/requests').then(res => res.json()).catch(() => []),
-      fetch('http://localhost:5000/api/proposals').then(res => res.json()).catch(() => []),
-      fetch('http://localhost:5000/api/contracts').then(res => res.json()).catch(() => []),
+      fetch(`${API_BASE_URL}/api/requests`).then(res => res.json()).catch(() => []),
+      fetch(`${API_BASE_URL}/api/proposals`).then(res => res.json()).catch(() => []),
+      fetch(`${API_BASE_URL}/api/contracts`).then(res => res.json()).catch(() => []),
       currentUserId 
-        ? fetch(`http://localhost:5000/api/reviews/${currentUserId}`).then(res => res.json()).catch(() => [])
+        ? fetch(`${API_BASE_URL}/api/reviews/${currentUserId}`).then(res => res.json()).catch(() => [])
         : Promise.resolve([])
     ]).then(([requestsData, proposalsData, contractsData, reviewsData]) => {
       // Also check localStorage for locally posted requests
