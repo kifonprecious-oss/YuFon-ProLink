@@ -6,6 +6,7 @@ import {
 import { Link } from 'react-router-dom';
 import Footer from '../components/Footer';
 import { useLanguage } from '../context/LanguageContext';
+import { API_BASE_URL } from '../config';
 
 export default function ServicesPage() {
   const { lang } = useLanguage();
@@ -26,9 +27,9 @@ export default function ServicesPage() {
     { id: 'Technical & Engineering Services', labelEn: 'Civil & Engineering', labelFr: 'Génie Civil', icon: Wrench }
   ];
 
-  // Fetch verified professionals from MongoDB backend API (`/api/professionals`)
+  // Fetch verified professionals from MongoDB backend API using API_BASE_URL
   useEffect(() => {
-    fetch('http://localhost:5000/api/professionals')
+    fetch(`${API_BASE_URL}/api/professionals`)
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) {
@@ -122,7 +123,7 @@ export default function ServicesPage() {
             {filteredProfessionals.map((pro) => {
               const proId = pro._id || pro.id;
               const avatarSrc = pro.profilePicture
-                ? (pro.profilePicture.startsWith('http') ? pro.profilePicture : `http://localhost:5000${pro.profilePicture}`)
+                ? (pro.profilePicture.startsWith('http') ? pro.profilePicture : `${API_BASE_URL}${pro.profilePicture}`)
                 : null;
 
               return (

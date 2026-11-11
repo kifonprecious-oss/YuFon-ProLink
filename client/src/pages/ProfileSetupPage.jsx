@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import Footer from '../components/Footer';
 import { User, MapPin, Phone, Briefcase, Camera, ShieldCheck, AlertCircle, Save, Lock } from 'lucide-react';
+import { API_BASE_URL } from '../config';
 
 export default function ProfileSetupPage() {
   const { lang } = useLanguage();
@@ -41,7 +42,7 @@ export default function ProfileSetupPage() {
       if (storedUser.profilePicture) {
         const fullImgUrl = storedUser.profilePicture.startsWith('http') 
           ? storedUser.profilePicture 
-          : `http://localhost:5000${storedUser.profilePicture}`;
+          : `${API_BASE_URL}${storedUser.profilePicture}`;
         setPreviewUrl(fullImgUrl);
       }
     } catch (err) {
@@ -81,7 +82,7 @@ export default function ProfileSetupPage() {
         data.append('profilePicture', profilePicture);
       }
 
-      const response = await fetch('http://localhost:5000/api/profile/update', {
+      const response = await fetch(`${API_BASE_URL}/api/profile/update`, {
         method: 'POST',
         body: data
       });
