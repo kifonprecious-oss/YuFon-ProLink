@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Send, FileText, DollarSign, Calendar } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { API_BASE_URL } from '../config';
 
 export default function RequestQuoteModal({ professional, onClose }) {
   const { lang, t } = useLanguage();
@@ -25,7 +26,7 @@ export default function RequestQuoteModal({ professional, onClose }) {
     };
 
     try {
-      const response = await fetch('http://localhost:5000/api/requests', {
+      const response = await fetch(`${API_BASE_URL}/api/requests`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -52,8 +53,8 @@ export default function RequestQuoteModal({ professional, onClose }) {
       console.error('Error connecting to backend server:', error);
       alert(
         lang === 'fr'
-          ? 'Impossible de se connecter au serveur backend. Assurez-vous que votre serveur fonctionne sur le port 5000.'
-          : 'Unable to connect to the backend server. Make sure your server is running on port 5000.'
+          ? 'Impossible de se connecter au serveur backend. Veuillez vérifier votre connexion.'
+          : 'Unable to connect to the backend server. Please check your network connection.'
       );
     } finally {
       setIsSubmitting(false);

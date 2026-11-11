@@ -3,6 +3,7 @@ import { FileText, ShieldCheck, DollarSign, Calendar, CheckCircle2, Lock, ArrowR
 import { useLanguage } from '../context/LanguageContext';
 import Footer from '../components/Footer';
 import { Link } from 'react-router-dom';
+import { API_BASE_URL } from '../config';
 
 export default function ContractPage() {
   const { lang } = useLanguage();
@@ -16,8 +17,8 @@ export default function ContractPage() {
       const storedUser = JSON.parse(localStorage.getItem('currentUser')) || {};
       const currentUserId = storedUser?._id || storedUser?.id || '';
 
-      // Fetch real contracts from MongoDB / Backend API
-      fetch('http://localhost:5000/api/contracts')
+      // Fetch real contracts from MongoDB / Backend API using API_BASE_URL
+      fetch(`${API_BASE_URL}/api/contracts`)
         .then(res => res.json())
         .then(data => {
           if (Array.isArray(data) && data.length > 0) {

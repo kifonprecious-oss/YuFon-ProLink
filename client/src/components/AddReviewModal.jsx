@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Star, Send, User, MessageSquare } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { API_BASE_URL } from '../config';
 
 export default function AddReviewModal({ professional, onClose }) {
   const { lang, t } = useLanguage();
@@ -14,7 +15,7 @@ export default function AddReviewModal({ professional, onClose }) {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/reviews', {
+      const response = await fetch(`${API_BASE_URL}/api/reviews`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
