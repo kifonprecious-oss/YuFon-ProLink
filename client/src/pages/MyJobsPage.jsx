@@ -3,6 +3,7 @@ import { useLanguage } from '../context/LanguageContext';
 import Footer from '../components/Footer';
 import { Briefcase, FileText, DollarSign, Clock, ArrowRight, Search, PlusCircle, Calendar } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { API_BASE_URL } from '../config';
 
 export default function MyJobsPage() {
   const { lang } = useLanguage();
@@ -15,10 +16,10 @@ export default function MyJobsPage() {
     const currentUser = JSON.parse(localStorage.getItem('currentUser')) || {};
     const currentUserId = currentUser._id || currentUser.id || '';
 
-    // Fetch real posted client jobs and submitted professional proposals from the backend
+    // Fetch real posted client jobs and submitted professional proposals from the backend using API_BASE_URL
     Promise.all([
-      fetch('http://localhost:5000/api/client-requests').then(res => res.json()).catch(() => []),
-      fetch('http://localhost:5000/api/proposals').then(res => res.json()).catch(() => [])
+      fetch(`${API_BASE_URL}/api/client-requests`).then(res => res.json()).catch(() => []),
+      fetch(`${API_BASE_URL}/api/proposals`).then(res => res.json()).catch(() => [])
     ]).then(([requestsData, proposalsData]) => {
       // Filter posted jobs (requests created by or associated with this user, or all if none filtered)
       const realPosted = Array.isArray(requestsData) ? requestsData : [];

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import Footer from '../components/Footer';
 import { Bell, CheckCircle2, Send, FileText, ShieldCheck } from 'lucide-react';
+import { API_BASE_URL } from '../config';
 
 export default function NotificationsPage() {
   const { lang } = useLanguage();
@@ -12,10 +13,10 @@ export default function NotificationsPage() {
     const currentUser = JSON.parse(localStorage.getItem('currentUser')) || {};
     const currentUserId = currentUser._id || currentUser.id;
 
-    // Fetch real proposals, contracts, and user approval status concurrently
+    // Fetch real proposals, contracts, and user approval status concurrently using API_BASE_URL
     Promise.all([
-      fetch('http://localhost:5000/api/proposals').then(res => res.json()).catch(() => []),
-      fetch('http://localhost:5000/api/contracts').then(res => res.json()).catch(() => [])
+      fetch(`${API_BASE_URL}/api/proposals`).then(res => res.json()).catch(() => []),
+      fetch(`${API_BASE_URL}/api/contracts`).then(res => res.json()).catch(() => [])
     ]).then(([proposalsData, contractsData]) => {
       const generatedNotifs = [];
 
