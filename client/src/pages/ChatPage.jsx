@@ -4,8 +4,11 @@ import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import io from 'socket.io-client';
 import Footer from '../components/Footer';
 import { useLanguage } from '../context/LanguageContext';
+import { API_BASE_URL } from '../config';
 
-const socket = io('http://localhost:5000');
+const socket = io(API_BASE_URL, {
+  transports: ['polling', 'websocket']
+});
 
 export default function ChatPage() {
   const { lang } = useLanguage();
@@ -25,11 +28,11 @@ export default function ChatPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // Fetch initial message history from MongoDB only if a specific chat is selected
+  // Fetch initial message history from MongoDB using API_BASE_URL only if a specific chat is selected
   useEffect(() => {
     if (!isVerifiedUser || !activeChat) return;
 
-    fetch(`http://localhost:5000/api/messages?recipient=${activeChat}`)
+    fetch(`${API_BASE_URL}/api/messages?recipient=${activeChat}`)
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data) && data.length > 0) {
