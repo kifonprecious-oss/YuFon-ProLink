@@ -3,6 +3,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { User, Mail, Briefcase, MapPin, Phone, Award, Edit3, Star, ShieldCheck, CheckCircle2, FileText, Calendar, DollarSign, Send, Layers } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Footer from '../components/Footer';
+import { API_BASE_URL } from '../config';
 
 export default function ProfilePage() {
   const { lang } = useLanguage();
@@ -47,12 +48,12 @@ export default function ProfilePage() {
       const userQualifications = JSON.parse(localStorage.getItem('userQualifications')) || [];
       setQualifications(userQualifications);
 
-      // Fetch dynamic dashboard metrics, contracts, and reviews concurrently
+      // Fetch dynamic dashboard metrics, contracts, and reviews concurrently using API_BASE_URL
       Promise.all([
-        fetch('http://localhost:5000/api/contracts').then(res => res.json()).catch(() => []),
-        currentUserId ? fetch(`http://localhost:5000/api/reviews/${currentUserId}`).then(res => res.json()).catch(() => []) : Promise.resolve([]),
-        fetch('http://localhost:5000/api/client-requests').then(res => res.json()).catch(() => []),
-        fetch('http://localhost:5000/api/proposals').then(res => res.json()).catch(() => [])
+        fetch(`${API_BASE_URL}/api/contracts`).then(res => res.json()).catch(() => []),
+        currentUserId ? fetch(`${API_BASE_URL}/api/reviews/${currentUserId}`).then(res => res.json()).catch(() => []) : Promise.resolve([]),
+        fetch(`${API_BASE_URL}/api/client-requests`).then(res => res.json()).catch(() => []),
+        fetch(`${API_BASE_URL}/api/proposals`).then(res => res.json()).catch(() => [])
       ]).then(([contractsData, reviewsData, requestsData, proposalsData]) => {
         const realCompleted = Array.isArray(contractsData)
           ? contractsData.filter(c => (c.professionalId === currentUserId || c.clientId === currentUserId) && (c.status?.toLowerCase() === 'completed'))
@@ -79,9 +80,9 @@ export default function ProfilePage() {
     ? (reviews.reduce((acc, rev) => acc + (Number(rev.rating) || 0), 0) / reviews.length).toFixed(1)
     : 0.0;
 
-  // Resolve proper static URL for uploaded profile pictures
+  // Resolve proper static URL for uploaded profile pictures using API_BASE_URL
   const avatarImageSrc = profileData.profilePicture
-    ? (profileData.profilePicture.startsWith('http') ? profileData.profilePicture : `http://localhost:5000${profileData.profilePicture}`)
+    ? (profileData.profilePicture.startsWith('http') ? profileData.profilePicture : `${API_BASE_URL}${profileData.profilePicture}`)
     : null;
 
   return (

@@ -6,6 +6,7 @@ import {
 import { Link } from 'react-router-dom';
 import Footer from '../components/Footer';
 import { useLanguage } from '../context/LanguageContext';
+import { API_BASE_URL } from '../config';
 
 export default function FindJobsPage() {
   const { lang } = useLanguage();
@@ -26,9 +27,9 @@ export default function FindJobsPage() {
     { id: 'Engineering', labelEn: 'Civil Engineering', labelFr: 'Génie Civil', icon: Wrench }
   ];
 
-  // Fetch client job postings from MongoDB backend API
+  // Fetch client job postings from MongoDB backend API using API_BASE_URL
   useEffect(() => {
-    fetch('http://localhost:5000/api/client-requests')
+    fetch(`${API_BASE_URL}/api/client-requests`)
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) {

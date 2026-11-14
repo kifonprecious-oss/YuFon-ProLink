@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FileText, MapPin, Upload, Send, ShieldCheck } from 'lucide-react';
 import Footer from '../components/Footer';
 import { useLanguage } from '../context/LanguageContext';
+import { API_BASE_URL } from '../config';
 
 export default function PostRequestPage() {
   const { lang } = useLanguage();
@@ -56,8 +57,8 @@ export default function PostRequestPage() {
       const existing = JSON.parse(localStorage.getItem('clientRequests')) || [];
       localStorage.setItem('clientRequests', JSON.stringify([newRequest, ...existing]));
 
-      // Attempt to post to backend API, catch any offline/network errors seamlessly
-      await fetch('http://localhost:5000/api/requests', {
+      // Attempt to post to backend API using API_BASE_URL, catch any offline/network errors seamlessly
+      await fetch(`${API_BASE_URL}/api/requests`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newRequest)
