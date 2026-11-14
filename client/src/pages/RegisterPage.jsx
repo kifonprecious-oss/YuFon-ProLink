@@ -39,19 +39,27 @@ export default function RegisterPage() {
       const data = await response.json();
 
       if (response.ok) {
-        if (data.user) {
-          localStorage.setItem('currentUser', JSON.stringify(data.user));
-        }
-        alert(lang === 'fr' ? 'Inscription réussie ! Veuillez configurer votre profil.' : 'Registration successful! Please setup your profile.');
-        navigate('/profile-setup');
+        localStorage.removeItem('currentUser');
+        alert(
+          lang === 'fr'
+            ? 'Inscription réussie ! Votre compte est en attente d’approbation par un administrateur.'
+            : 'Registration successful! Your account is pending admin approval. You can sign in once verified.'
+        );
+        navigate('/login');
       } else {
-        alert(lang === 'fr' ? `Échec de l’inscription : ${data.error || 'Veuillez vérifier vos informations'}` : `Registration failed: ${data.error || 'Please check your details'}`);
+        alert(
+          lang === 'fr'
+            ? `Échec de l’inscription : ${data.error || 'Veuillez vérifier vos informations'}`
+            : `Registration failed: ${data.error || 'Please check your details'}`
+        );
       }
     } catch (error) {
       console.error('Error connecting to backend:', error);
-      alert(lang === 'fr' 
-        ? `Erreur de connexion (${error.message || 'Serveur indisponible'}). Veuillez réessayer.` 
-        : `Connection error (${error.message || 'Server unreachable'}). Please check your network or try again.`);
+      alert(
+        lang === 'fr' 
+          ? `Erreur de connexion (${error.message || 'Serveur indisponible'}). Veuillez réessayer.` 
+          : `Connection error (${error.message || 'Server unreachable'}). Please check your network or try again.`
+      );
     } finally {
       setIsSubmitting(false);
     }
