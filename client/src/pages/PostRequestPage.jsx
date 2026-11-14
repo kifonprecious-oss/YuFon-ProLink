@@ -25,6 +25,12 @@ export default function PostRequestPage() {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      // Check if file size is under 2MB to prevent quota issues
+      if (file.size > 2 * 1024 * 1024) {
+        alert(lang === 'fr' ? 'L\'image est trop volumineuse. Veuillez choisir une image de moins de 2 Mo.' : 'Image file is too large. Please choose an image under 2MB.');
+        return;
+      }
+
       const reader = new FileReader();
       reader.onloadend = () => {
         setFormData(prev => ({
@@ -43,7 +49,12 @@ export default function PostRequestPage() {
 
     const currentUser = JSON.parse(localStorage.getItem('currentUser')) || {};
     const newRequest = {
-      ...formData,
+      title: formData.title,
+      location: formData.location,
+      description: formData.description,
+      imageName: formData.imageName,
+      // Omit large base64 image string from local storage to prevent QuotaExceededError, or store only if small
+      image: formData.image && formData.image.length < 500000 ? formData.image : null,
       budget: 'Discussed via Chat',
       _id: Date.now().toString(),
       clientId: currentUser._id || currentUser.id || 'local-client',
@@ -53,22 +64,28 @@ export default function PostRequestPage() {
     };
 
     try {
-      // Always save to localStorage first so it's instantly available
-      const existing = JSON.parse(localStorage.getItem('clientRequests')) || [];
-      localStorage.setItem('clientRequests', JSON.stringify([newRequest, ...existing]));
+      // Safely save to localStorage with quota error fallback
+      try {
+        const existing = JSON.parse(localStorage.getItem('clientRequests')) || [];
+        localStorage.setItem('clientRequests', JSON.stringify([newRequest, ...existing]));
+      } catch (storageErr) {
+        console.warn('LocalStorage quota exceeded, skipping local cache and posting directly to server.', storageErr);
+      }
 
-      // Attempt to post to backend API using API_BASE_URL, catch any offline/network errors seamlessly
+      // Attempt to post to backend API using API_BASE_URL
       await fetch(`${API_BASE_URL}/api/requests`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newRequest)
       }).catch((err) => {
-        console.warn('Backend server offline, saved locally to localStorage.', err);
+        console.warn('Backend server offline, saved locally or handled.', err);
       });
 
       navigate('/dashboard');
     } catch (err) {
       console.error('Submission error:', err);
+      alert('Failed to publish job. Please try again.');
+    } finally {
       setSubmitting(false);
     }
   };
@@ -151,7 +168,7 @@ export default function PostRequestPage() {
                       lang === 'fr' ? 'Cliquez pour télécharger ou glissez-déposez une image' : 'Click to upload or drag & drop an image'
                     )}
                   </p>
-                  <p className="text-[10px] text-slate-500">PNG, JPG, WEBP up to 5MB</p>
+                  <p className="text-[10px] text-slate-500">PNG, JPG, WEBP up to 2MB</p>
                 </div>
               </div>
             </div>
