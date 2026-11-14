@@ -27,29 +27,45 @@ export default function FindJobsPage() {
     { id: 'Engineering', labelEn: 'Civil Engineering', labelFr: 'Génie Civil', icon: Wrench }
   ];
 
-  // Fetch client job postings from MongoDB backend API using API_BASE_URL
+  // Fetch client job postings from backend API and combine with localStorage fallback
   useEffect(() => {
-    fetch(`${API_BASE_URL}/api/client-requests`)
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) {
-          setJobs(data);
-        } else {
-          setJobs([]);
-        }
+    const fetchJobs = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/requests`);
+        const backendJobs = response.ok ? await response.json() : [];
+
+        // Also retrieve locally cached job posts
+        const localJobs = JSON.parse(localStorage.getItem('clientRequests')) || [];
+
+        // Merge both arrays and remove duplicates based on _id
+        const allJobsMap = new Map();
+        [...(Array.isArray(backendJobs) ? backendJobs : []), ...localJobs].forEach(job => {
+          if (job && (job._id || job.id)) {
+            allJobsMap.set(job._id || job.id, job);
+          }
+        });
+
+        setJobs(Array.from(allJobsMap.values()));
+      } catch (err) {
+        console.warn('Backend server offline, loading from local storage cache:', err);
+        const localJobs = JSON.parse(localStorage.getItem('clientRequests')) || [];
+        setJobs(localJobs);
+      } finally {
         setLoading(false);
-      })
-      .catch(err => {
-        console.error('Failed to fetch client jobs:', err);
-        setJobs([]);
-        setLoading(false);
-      });
+      }
+    };
+
+    fetchJobs();
   }, []);
 
   const filteredJobs = jobs.filter(job => {
-    const matchesSearch = (job.projectTitle && job.projectTitle.toLowerCase().includes(searchTerm.toLowerCase())) || 
-                          (job.description && job.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
-                          (job.location && job.location.toLowerCase().includes(searchTerm.toLowerCase()));
+    const jobTitle = job.title || job.projectTitle || '';
+    const jobDesc = job.description || '';
+    const jobLoc = job.location || '';
+
+    const matchesSearch = jobTitle.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          jobDesc.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          jobLoc.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'All' || job.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
@@ -130,7 +146,7 @@ export default function FindJobsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {filteredJobs.map((job) => {
               const jobId = job._id || job.id;
-              const title = job.projectTitle || job.title;
+              const title = job.title || job.projectTitle;
 
               return (
                 <div key={jobId} className="bg-[#111622]/60 border border-slate-800 rounded-3xl p-6 shadow-2xl hover:border-emerald-500/50 transition flex flex-col justify-between backdrop-blur-md">
@@ -165,7 +181,7 @@ export default function FindJobsPage() {
                       </div>
                       <div className="flex items-center gap-2">
                         <Calendar className="h-3.5 w-3.5 text-slate-500" />
-                        <span>{job.timeline || job.createdAt || 'Flexible Timeline'}</span>
+                        <span>{job.timeline || (job.createdAt ? new Date(job.createdAt).toLocaleDateString() : 'Flexible Timeline')}</span>
                       </div>
                     </div>
                   </div>
@@ -173,12 +189,12 @@ export default function FindJobsPage() {
                   {/* Action Row */}
                   <div className="mt-4 pt-4 flex items-center justify-between">
                     <span className="text-[11px] text-slate-400">
-                      {lang === 'fr' ? 'Publié par :' : 'Posted by:'} <strong className="text-white">{job.professionalName || job.clientName || 'Client'}</strong>
+                      {lang === 'fr' ? 'Publié par :' : 'Posted by:'} <strong className="text-white">{job.clientName || 'Client'}</strong>
                     </span>
 
                     <div className="flex items-center gap-2">
                       <Link
-                        to={`/chat?proName=${encodeURIComponent(job.professionalName || job.clientName || 'Client')}`}
+                        to={`/chat?proName=${encodeURIComponent(job.clientName || 'Client')}`}
                         className="bg-[#0A0D14] hover:bg-slate-800 text-emerald-300 border border-slate-700 p-2.5 rounded-2xl transition shadow"
                         title={lang === 'fr' ? 'Contacter le client' : 'Message Client'}
                       >
