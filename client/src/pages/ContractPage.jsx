@@ -4,6 +4,7 @@ import { useLanguage } from '../context/LanguageContext';
 import Footer from '../components/Footer';
 import { Link } from 'react-router-dom';
 import { API_BASE_URL } from '../config';
+import EscrowPaymentModal from '../components/EscrowPaymentModal'; // <-- Imported Escrow Modal
 
 export default function ContractPage() {
   const { lang } = useLanguage();
@@ -11,6 +12,7 @@ export default function ContractPage() {
   const [loading, setLoading] = useState(true);
   const [signed, setSigned] = useState(false);
   const [escrowPaid, setEscrowPaid] = useState(false);
+  const [showEscrowModal, setShowEscrowModal] = useState(false); // <-- Escrow Modal State
 
   useEffect(() => {
     try {
@@ -22,18 +24,16 @@ export default function ContractPage() {
         .then(res => res.json())
         .then(data => {
           if (Array.isArray(data) && data.length > 0) {
-            // Find an active project involving this real user
             const found = data.find(c => 
               (c.clientId === currentUserId || c.professionalId === currentUserId) && 
-              (c.status === 'active' || c.status === 'In Progress' || c.status === 'pending')
+              (c.status === 'active' || c.status === 'In Progress' || c.status === 'pending' || c.status === 'Active')
             );
             setActiveProject(found || null);
             if (found) {
-              setSigned(found.signed || false);
-              setEscrowPaid(found.escrowPaid || false);
+              setSigned(found.signed || found.escrowStatus === 'Funded in Escrow' || false);
+              setEscrowPaid(found.escrowPaid || found.escrowStatus === 'Funded in Escrow' || found.escrowStatus === 'Released to Pro' || false);
             }
           } else {
-            // Fallback to localStorage active project if any real agreement was created
             const localActive = JSON.parse(localStorage.getItem('activeContract'));
             setActiveProject(localActive || null);
             if (localActive) {
@@ -69,17 +69,14 @@ export default function ContractPage() {
     );
   };
 
-  const handlePayEscrow = () => {
+  const handleEscrowSuccess = (updatedContract) => {
     setEscrowPaid(true);
-    if (activeProject) {
-      const updated = { ...activeProject, escrowPaid: true, status: 'In Progress' };
-      setActiveProject(updated);
-      localStorage.setItem('activeContract', JSON.stringify(updated));
-    }
+    setActiveProject(updatedContract);
+    setShowEscrowModal(false);
     alert(
       lang === 'fr'
-        ? 'Fonds bloqués en toute sécurité dans l’espace séquestre (Escrow) de YuFon-ProLink. Le professionnel peut commencer.'
-        : 'Funds securely locked in YuFon-ProLink escrow. The professional can now begin the project.'
+        ? 'Fonds bloqués en toute sécurité dans l’espace séquestre (Escrow) via Mobile Money.'
+        : 'Funds securely locked in YuFon-ProLink escrow via Mobile Money.'
     );
   };
 
@@ -121,7 +118,7 @@ export default function ContractPage() {
                 <h2 className="text-xl font-black text-white mt-1">{activeProject.title || activeProject.projectTitle}</h2>
               </div>
               <span className="bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 px-3 py-1.5 rounded-xl text-xs font-bold">
-                Status: {activeProject.status || 'In Progress'}
+                Status: {activeProject.escrowStatus || activeProject.status || 'In Progress'}
               </span>
             </div>
 
@@ -129,7 +126,7 @@ export default function ContractPage() {
               <div className="bg-[#0A0D14] p-4 rounded-2xl border border-slate-800">
                 <span className="text-slate-400 block mb-1">{lang === 'fr' ? 'Budget du Contrat' : 'Contract Budget'}</span>
                 <div className="text-emerald-400 font-black text-base flex items-center gap-1">
-                  <DollarSign className="h-4 w-4 text-slate-400" /> {activeProject.budget || '150,000 XAF'}
+                  <DollarSign className="h-4 w-4 text-slate-400" /> {activeProject.agreedAmount ? `${activeProject.agreedAmount.toLocaleString()} XAF` : activeProject.budget || '150,000 XAF'}
                 </div>
               </div>
               <div className="bg-[#0A0D14] p-4 rounded-2xl border border-slate-800">
@@ -172,10 +169,10 @@ export default function ContractPage() {
                   </button>
                 ) : !escrowPaid ? (
                   <button 
-                    onClick={handlePayEscrow}
+                    onClick={() => setShowEscrowModal(true)}
                     className="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-6 py-3 rounded-2xl text-xs transition shadow-lg flex items-center justify-center gap-2"
                   >
-                    <Lock className="h-4 w-4" /> {lang === 'fr' ? 'Approvisionner l’Escrow' : 'Fund Escrow'}
+                    <Lock className="h-4 w-4" /> {lang === 'fr' ? 'Approvisionner l’Escrow (MoMo/Orange)' : 'Fund Escrow (MoMo/Orange)'}
                   </button>
                 ) : (
                   <div className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-bold px-5 py-3 rounded-2xl flex items-center gap-2">
@@ -218,6 +215,20 @@ export default function ContractPage() {
 
       </div>
       <Footer />
+
+      {/* Escrow Mobile Money Payment Modal */}
+      {showEscrowModal && activeProject && (
+        <EscrowPaymentModal 
+          contract={{
+            _id: activeProject._id,
+            projectTitle: activeProject.title || activeProject.projectTitle || 'Assigned Project',
+            professionalName: activeProject.professionalName || 'Professional',
+            agreedAmount: activeProject.agreedAmount || parseInt(String(activeProject.budget).replace(/[^0-9]/g, '')) || 50000
+          }}
+          onClose={() => setShowEscrowModal(false)}
+          onSuccess={handleEscrowSuccess}
+        />
+      )}
     </div>
   );
 }

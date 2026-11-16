@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { 
   Users, Menu, X, Globe, LayoutDashboard, Search, Briefcase, 
-  FolderKanban, MessageSquare, Bell, User, ArrowLeftRight, Shield 
+  FolderKanban, MessageSquare, User, ArrowLeftRight, Shield 
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import NotificationBell from './NotificationBell'; // <-- Imported Notification Bell
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -43,7 +44,6 @@ export default function Navbar() {
       myJobs: 'My Jobs',
       projects: 'Projects',
       messages: 'Messages',
-      notifications: 'Notification',
       profile: 'Profile',
       admin: 'Admin',
       clientView: 'Client View',
@@ -58,7 +58,6 @@ export default function Navbar() {
       myJobs: 'Mes Emplois',
       projects: 'Projets',
       messages: 'Messages',
-      notifications: 'Notifications',
       profile: 'Profil',
       admin: 'Admin',
       clientView: 'Vue Client',
@@ -106,10 +105,6 @@ export default function Navbar() {
 
         <Link to="/messages" className={getLinkStyle('/messages')}>
           <MessageSquare className="h-4 w-4 text-teal-400" /> {t.messages}
-        </Link>
-
-        <Link to="/notifications" className={getLinkStyle('/notifications')}>
-          <Bell className="h-4 w-4 text-emerald-400" /> {t.notifications}
         </Link>
 
         <Link to="/profile" className={getLinkStyle('/profile')}>
@@ -160,17 +155,22 @@ export default function Navbar() {
             {renderNavLinks()}
           </div>
 
-          {/* Right Action Buttons: Border-free unless hovered/active */}
+          {/* Right Action Buttons */}
           <div className="hidden md:flex items-center space-x-3">
             {currentUser && (
-              <button
-                onClick={handleToggleMode}
-                className="flex items-center gap-1.5 bg-[#111622] hover:bg-slate-800 text-emerald-300 px-3.5 py-2 rounded-xl text-xs font-bold transition shadow-md border-0"
-                title="Switch View Mode"
-              >
-                <ArrowLeftRight className="h-3.5 w-3.5" />
-                {currentMode === 'client' ? t.clientView : t.proView}
-              </button>
+              <>
+                {/* Live Notification Bell Dropdown */}
+                <NotificationBell />
+
+                <button
+                  onClick={handleToggleMode}
+                  className="flex items-center gap-1.5 bg-[#111622] hover:bg-slate-800 text-emerald-300 px-3.5 py-2 rounded-xl text-xs font-bold transition shadow-md border-0"
+                  title="Switch View Mode"
+                >
+                  <ArrowLeftRight className="h-3.5 w-3.5" />
+                  {currentMode === 'client' ? t.clientView : t.proView}
+                </button>
+              </>
             )}
 
             <button
@@ -194,6 +194,8 @@ export default function Navbar() {
           </div>
 
           <div className="flex md:hidden items-center space-x-2">
+            {currentUser && <NotificationBell />}
+
             <button
               onClick={() => setLang(lang === 'en' ? 'fr' : 'en')}
               className="flex items-center gap-1 bg-[#111622] text-emerald-300 px-2.5 py-2 rounded-lg text-xs font-bold border-0"
@@ -243,7 +245,6 @@ export default function Navbar() {
               <Link to="/my-jobs" onClick={() => setIsOpen(false)} className="py-2 px-3 bg-[#111622] rounded-lg">{t.myJobs}</Link>
               <Link to="/projects" onClick={() => setIsOpen(false)} className="py-2 px-3 bg-[#111622] rounded-lg">{t.projects}</Link>
               <Link to="/messages" onClick={() => setIsOpen(false)} className="py-2 px-3 bg-[#111622] rounded-lg">{t.messages}</Link>
-              <Link to="/notifications" onClick={() => setIsOpen(false)} className="py-2 px-3 bg-[#111622] rounded-lg">{t.notifications}</Link>
               <Link to="/profile" onClick={() => setIsOpen(false)} className="py-2 px-3 bg-[#111622] rounded-lg">{t.profile}</Link>
               {isAdmin && (
                 <Link 
