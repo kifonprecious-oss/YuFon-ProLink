@@ -4,7 +4,8 @@ const { Server } = require('socket.io');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const multer = require('multer');
-const path = require('path');
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 require('dotenv').config();
 
 const app = express();
@@ -23,22 +24,25 @@ app.use(cors());
 app.get('/', (req, res) => {
   res.status(200).json({ 
     status: 'online', 
-    service: 'YuFon-ProLink Backend API',
+    service: 'YuFon-ProLink Backend API with Cloudinary Storage',
     timestamp: new Date().toISOString() 
   });
 });
 
-// Serve uploaded files statically so they can be accessed via URL (e.g., http://localhost:5000/uploads/filename.jpg)
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// --- Cloudinary Configuration ---
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
-// --- Multer Storage Configuration ---
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/'); // Make sure an 'uploads' folder exists in your backend root directory
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + '-' + file.originalname);
+// --- Cloudinary Multer Storage Configuration ---
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'yufon-prolink-uploads',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'pdf'],
+    transformation: [{ width: 1200, height: 1200, crop: 'limit' }]
   }
 });
 const upload = multer({ storage: storage });
@@ -102,9 +106,10 @@ const reviewSchema = new mongoose.Schema({
 });
 
 const messageSchema = new mongoose.Schema({
-  sender: String,
-  recipient: String,
-  text: String,
+  contractId: { type: String, required: true }, // Ties message specifically to a contract room
+  senderId: { type: String, required: true },
+  senderName: { type: String, required: true },
+  text: { type: String, required: true },
   timestamp: { type: Date, default: Date.now }
 });
 
@@ -456,7 +461,7 @@ app.put('/api/notifications/:id/read', async (req, res) => {
   }
 });
 
-// 8. Professional Portfolio Endpoints
+// 8. Professional Portfolio Endpoints (Cloudinary Integration)
 app.get('/api/portfolio/:professionalId', async (req, res) => {
   try {
     const items = await PortfolioItem.find({ professionalId: req.params.professionalId }).sort({ createdAt: -1 });
@@ -480,8 +485,8 @@ app.post('/api/portfolio', upload.fields([
       description,
       category: category || 'General',
       isBeforeAfter: isBeforeAfter === 'true' || isBeforeAfter === true,
-      beforeImage: req.files && req.files['beforeImage'] ? `/uploads/${req.files['beforeImage'][0].filename}` : null,
-      afterImage: req.files && req.files['afterImage'] ? `/uploads/${req.files['afterImage'][0].filename}` : (req.file ? `/uploads/${req.file.filename}` : '')
+      beforeImage: req.files && req.files['beforeImage'] ? req.files['beforeImage'][0].path : null,
+      afterImage: req.files && req.files['afterImage'] ? req.files['afterImage'][0].path : (req.file ? req.file.path : '')
     });
 
     await newItem.save();
@@ -580,7 +585,7 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// 11. Profile Update Endpoint (Handles multipart/form-data from ProfileSetupPage)
+// 11. Profile Update Endpoint (Cloudinary Supported)
 app.post('/api/profile/update', upload.single('profilePicture'), async (req, res) => {
   try {
     const { userId, phone, bio, skills } = req.body;
@@ -604,7 +609,7 @@ app.post('/api/profile/update', upload.single('profilePicture'), async (req, res
     }
 
     if (req.file) {
-      user.profilePicture = `/uploads/${req.file.filename}`;
+      user.profilePicture = req.file.path; // Cloudinary secure URL
     }
 
     user.isProfileComplete = true;
@@ -634,7 +639,7 @@ app.post('/api/profile/update', upload.single('profilePicture'), async (req, res
   }
 });
 
-// 12. Alternative Profile Update Endpoint (Supports JSON & Dual File Uploads)
+// 12. Alternative Profile Update Endpoint (Cloudinary Supported)
 app.put('/api/users/profile/:id', upload.fields([
   { name: 'profilePicture', maxCount: 1 },
   { name: 'idDocument', maxCount: 1 }
@@ -656,11 +661,11 @@ app.put('/api/users/profile/:id', upload.fields([
     };
 
     if (req.files && req.files['profilePicture']) {
-      updateFields.profilePicture = `/uploads/${req.files['profilePicture'][0].filename}`;
+      updateFields.profilePicture = req.files['profilePicture'][0].path;
     }
 
     if (req.files && req.files['idDocument']) {
-      updateFields.idDocument = `/uploads/${req.files['idDocument'][0].filename}`;
+      updateFields.idDocument = req.files['idDocument'][0].path;
     }
 
     const updatedUser = await User.findByIdAndUpdate(
@@ -679,13 +684,13 @@ app.put('/api/users/profile/:id', upload.fields([
   }
 });
 
-// 13. Fetch Chat Message History
-app.get('/api/messages', async (req, res) => {
+// 13. Fetch Contract-Specific Chat Message History
+app.get('/api/messages/:contractId', async (req, res) => {
   try {
-    const messages = await Message.find().sort({ timestamp: 1 }).limit(100);
+    const messages = await Message.find({ contractId: req.params.contractId }).sort({ timestamp: 1 });
     res.json(messages);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch messages' });
+    res.status(500).json({ error: error.message });
   }
 });
 
@@ -720,18 +725,28 @@ app.put('/api/admin/users/:id/status', async (req, res) => {
 });
 
 
-// --- WebSocket Real-Time Handlers ---
+// --- WebSocket Real-Time Contract Chat & Notification Handlers ---
 
 io.on('connection', (socket) => {
   console.log(`User connected via WebSocket: ${socket.id}`);
 
-  socket.on('send_message', async (data) => {
+  // Join a specific contract room
+  socket.on('join_contract_room', (contractId) => {
+    socket.join(contractId);
+    console.log(`User joined contract room: ${contractId}`);
+  });
+
+  // Handle real-time contract messages
+  socket.on('send_contract_message', async (data) => {
     try {
-      const newMessage = new Message(data);
+      const { contractId, senderId, senderName, text } = data;
+      const newMessage = new Message({ contractId, senderId, senderName, text });
       await newMessage.save();
-      io.emit('receive_message', newMessage);
+
+      // Broadcast to everyone in that contract room
+      io.to(contractId).emit('receive_contract_message', newMessage);
     } catch (err) {
-      console.error('Error saving real-time message:', err);
+      console.error('Error saving contract message:', err);
     }
   });
 
@@ -751,5 +766,5 @@ io.on('connection', (socket) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`YuFon-ProLink server running on port ${PORT} with full REST & WebSocket support`);
+  console.log(`YuFon-ProLink server running on port ${PORT} with Contract Chat & Cloudinary support`);
 });
